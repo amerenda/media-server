@@ -1,0 +1,133 @@
+# Plex (Media Center)
+server {
+    listen 80;
+    server_name plex.${WEB_DOMAIN};
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+}
+
+server {
+    listen 443 ssl;
+    server_name plex.${WEB_DOMAIN};
+
+    ssl_certificate /etc/letsencrypt/live/wildcard-${WEB_DOMAIN}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/wildcard-${WEB_DOMAIN}/privkey.pem;
+
+    location / {
+        proxy_pass http://${NGINX_ADDRESS}:32400;
+    }
+}
+
+# Sonarr (TV Shows)
+server {
+    listen 80;
+    server_name tv.${WEB_DOMAIN} sonarr.${WEB_DOMAIN};
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+}
+
+server {
+    listen 443 ssl;
+    server_name tv.${WEB_DOMAIN} sonarr.${WEB_DOMAIN};
+
+    ssl_certificate /etc/letsencrypt/live/wildcard-${WEB_DOMAIN}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/wildcard-${WEB_DOMAIN}/privkey.pem;
+
+    location / {
+        proxy_pass http://${NGINX_ADDRESS}:8989;
+    }
+}
+
+# Radarr  (Movies)
+server {
+    listen 80;
+    server_name movies.${WEB_DOMAIN} radarr.${WEB_DOMAIN};
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+}
+
+server {
+    listen 443 ssl;
+    server_name movies.${WEB_DOMAIN} radarr.${WEB_DOMAIN};
+
+    ssl_certificate /etc/letsencrypt/live/wildcard-${WEB_DOMAIN}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/wildcard-${WEB_DOMAIN}/privkey.pem;
+
+    location / {
+        proxy_pass http://${NGINX_ADDRESS}:7878;
+    }
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+}
+
+# Sabznbd (Downloader)
+server {
+    listen 80;
+    server_name downloads.${WEB_DOMAIN} nzb.${WEB_DOMAIN};
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+}
+
+server {
+    listen 443 ssl;
+    server_name downloads.${WEB_DOMAIN} nzb.${WEB_DOMAIN};
+
+    ssl_certificate /etc/letsencrypt/live/wildcard-${WEB_DOMAIN}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/wildcard-${WEB_DOMAIN}/privkey.pem;
+
+    location / {
+        proxy_pass http://${NGINX_ADDRESS}:8080;
+    }
+}
+
+# Transmission (Torrents)
+server {
+    listen 80;
+    server_name torrents.${WEB_DOMAIN} transmission.${WEB_DOMAIN};
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+}
+
+server {
+    listen 443 ssl;
+    server_name torrents.${WEB_DOMAIN} transmission.${WEB_DOMAIN};
+
+    ssl_certificate /etc/letsencrypt/live/wildcard-${WEB_DOMAIN}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/wildcard-${WEB_DOMAIN}/privkey.pem;
+
+    location / {
+        proxy_pass http://${NGINX_ADDRESS}:9091;
+    }
+}

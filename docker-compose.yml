@@ -3,7 +3,8 @@ version: "3.7"
 services:
   sonarr:
     image: linuxserver/sonarr
-    env_file: "./defaults.env"
+    env_file:
+      - defaults.env
     container_name: sonarr
     environment:
       - PUID=1000
@@ -11,32 +12,30 @@ services:
       - TZ=America/New_York
       - UMASK_SET=022
     volumes:
-      - ${APP_VOLUME}/sonar/config: config
-      - ${MEDIA_DIR}/tv:/tv
+      - ${APP_DIR}/sonarr/config:/config
       - ${MEDIA_DIR}/anime:/anime
+      - ${MEDIA_DIR}/tv:/tv
       - ${DOWNLOAD_DIR}/complete:/downloads
     ports:
       - 8989:8989
     restart: unless-stopped
   sabnzbd:
     image: linuxserver/sabnzbd
-    env_file: "./defaults.env"
     container_name: sabnzbd
     environment:
       - PUID=1000
       - PGID=1000
       - TZ=America/New_York
     volumes:
-      - ${APP_VOLUME}/sabnzbd/config:/config
+      - ${APP_DIR}/sabnzbd/config:/config
       - ${DOWNLOAD_DIR}/complete:/downloads
       - ${DOWNLOAD_DIR}/incomplete:/incomplete-downloads
     ports:
-      - 8080:8080
+      - 1080:8080
       - 9090:9090
     restart: unless-stopped
   radarr:
     image: linuxserver/radarr
-    env_file: "./defaults.env"
     container_name: radarr
     environment:
       - PUID=1000
@@ -44,7 +43,7 @@ services:
       - TZ=America/New_York
       - UMASK_SET=022
     volumes:
-      - ${APP_VOLUME}/radarr/config:/config
+      - ${APP_DIR}/radarr/config:/config
       - ${MEDIA_DIR}/movies:/movies
       - ${DOWNLOAD_DIR}/complete:/downloads
     ports:
@@ -52,7 +51,6 @@ services:
     restart: unless-stopped
   transmission:
     image: linuxserver/transmission
-    env_file: "./defaults.env"
     container_name: transmission
     environment:
       - PUID=1000
@@ -60,7 +58,7 @@ services:
       - TZ=America/New_York
       - TRANSMISSION_WEB_HOME=/combustion-release/
     volumes:
-      - ${APP_VOLUME}/transmission/config:/config
+      - ${APP_DIR}/transmission/config:/config
       - ${DOWNLOAD_DIR}/complete:/downloads
       - ${DOWNLOAD_DIR}/incomplete:/incomplete
       - ${DOWNLOAD_DIR}/watch:/watch
@@ -71,7 +69,6 @@ services:
     restart: unless-stopped
   plex:
     image: linuxserver/plex
-    env_file: "./defaults.env"
     container_name: plex
     network_mode: host
     environment:
@@ -81,33 +78,31 @@ services:
       - UMASK_SET=022
       - PLEX_CLAIM=claim-ff-x-xYGjXmkkHZDASmH
     volumes:
-      - ${APP_VOLUME}/plex/config:/config
+      - ${APP_DIR}/plex/config:/config
       - ${MEDIA_DIR}/tv:/tv
       - ${MEDIA_DIR}/anime:/anime
       - ${MEDIA_DIR}/movies:/movies
     restart: unless-stopped
   nginx:
     image: nginx
-    env_file: "./defaults.env"
     container_name: nginx
     volumes:
-      - ${APP_VOLUME}/nginx/config:/etc/nginx/conf.d
-      - ${APP_VOLUME}/certbot/config:/etc/letsencrypt
-      - ${APP_VOLUME}/certbot/data:/var/lib/letsencrypt
+      - ${APP_DIR}/nginx/config:/etc/nginx/conf.d
+      - ${APP_DIR}/certbot/config:/etc/letsencrypt
+      - ${APP_DIR}/certbot/data:/var/lib/letsencrypt
     ports:
       - "443:443"
       - "80:80"
     command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
   certbot:
     container_name: certbot
-    env_file: "./defaults.env"
     image: certbot/dns-digitalocean
     restart: unless-stopped
     volumes:
-      - ${APP_VOLUME}/certbot/config:/etc/letsencrypt
-      - ${APP_VOLUME}/certbot/data:/var/lib/letsencrypt
-      - ${APP_VOLUME}/certbot/scripts:/opt/scripts
+      - ${APP_DIR}/certbot/config:/etc/letsencrypt
+      - ${APP_DIR}/certbot/data:/var/lib/letsencrypt
+      - ${APP_DIR}/certbot/scripts:/opt/scripts
     ports:
       - "8082:80"
       - "9443:443"
-    command: "certonly --agree-tos --dns-digitalocean --dns-digitalocean-credentials /etc/letsencrypt/do.ini --cert-name wildcard-home-amer-dev -d \"*.${WEB_DOMAIN}\" -d \"${WEB_DOMAIN}\""
+    command: "certonly --agree-tos --dns-digitalocean --dns-digitalocean-credentials /etc/letsencrypt/do.ini --cert-name wildcard-home-amer-dev -d \"*.home.amer.dev\" -d \"home.amer.dev\""
