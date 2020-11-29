@@ -1,7 +1,7 @@
 # How to setup hama agent
 cd /mnt/data/apps/plex/config/Library/'Application Support'/'Plex Media Server'/Plug-ins/
 git clone https://github.com/ZeroQI/Hama.bundle.git
-chmod 775 -R Hama.bundle
+chmod 0775 -R Hama.bundle
 cd ..
 mkdir -p Scanners/Series
 cd Scanners/Series
