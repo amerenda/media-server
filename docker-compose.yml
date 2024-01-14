@@ -1,0 +1,193 @@
+version: "3.9"
+name: media-stack
+services:
+
+  vpn:
+    profiles: ["vpn"]
+    container_name: vpn
+    image: qmcgaw/gluetun:v3.36.0
+
+    cap_add:
+      - NET_ADMIN
+
+    environment:
+      - VPN_SERVICE_PROVIDER=nordvpn
+      - OPENVPN_USER=${VPN_USER}
+      - OPENVPN_PASSWORD=${VPN_PASSWORD}
+      - SERVER_COUNTRIES="United States"
+
+    networks:
+      - servarr
+
+    ports:
+       # sabnzbd
+       - 8080:8080
+       # prowlarr ports
+       - 9696:9696
+    restart: "unless-stopped"
+
+
+  prowlarr:
+    container_name: prowlarr
+    image: linuxserver/prowlarr:latest
+
+    depends_on:
+      - vpn
+
+    network_mode: service:vpn
+
+    #networks:
+    #  servarr:
+
+    #ports:
+    #  - 9696:9696
+
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=EST
+    volumes:
+      - ${PROWLARR_CONFIG}:/config
+
+    restart: unless-stopped
+
+  sabnzbd:
+    image: lscr.io/linuxserver/sabnzbd:latest
+    container_name: sabnzbd
+
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=EST
+
+    #ports:
+    #  - 8080:8080
+
+    volumes:
+      - ${SABNZBD_CONFIG}:/config
+      - ${USENET_DOWNLOADS}:/downloads
+      - ${USENET_DOWNLOADS_INCOMPLETE}:/incomplete-downloads
+
+    depends_on:
+      - vpn
+
+    network_mode: service:vpn
+
+    restart: unless-stopped
+
+  radarr:
+    container_name: radarr
+    image: lscr.io/linuxserver/radarr:latest
+
+    networks:
+      servarr:
+
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=EST
+
+    ports:
+      - 7878:7878
+
+    volumes:
+      - ${RADARR_CONFIG}:/config
+      - ${MOVIES_FOLDER}:/movies
+      - ${USENET_DOWNLOADS}:/downloads
+
+    restart: "unless-stopped"
+
+  sonarr:
+    image: linuxserver/sonarr:latest
+    container_name: sonarr
+
+    networks:
+      servarr:
+
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=EST
+
+    volumes:
+      - ${SONARR_CONFIG}:/config
+      - ${TV_FOLDER}:/tv
+      - ${USENET_DOWNLOADS}:/downloads
+
+    ports:
+      - 8989:8989
+
+    restart: unless-stopped
+
+  jellyfin:
+    image: linuxserver/jellyfin:latest
+    container_name: jellyfin
+
+    networks:
+      - servarr
+
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=EST
+      - JELLYFIN_PublishedServerUrl=$JELLYFIN_URL
+
+    volumes:
+      - ${JELLYFIN_CONFIG}:/config
+      - ${MOVIES_FOLDER}:/movies
+      - ${TV_FOLDER}:/tv
+
+    ports:
+      - 8096:8096
+      - 7359:7359/udp
+      - 8920:8920
+
+    restart: unless-stopped
+
+  dns:
+    build:
+      context: ./dns/
+      dockerfile: Dockerfile
+    image: media-server-dns
+    container_name: dns
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: nginx
+
+    volumes:
+      - ${CERT_FOLDER}:/etc/letsencrypt
+      - ${NGINX_FOLDER}:/etc/nginx/conf.d/
+
+    ports:
+      - 80:80
+      - 443:443
+
+    networks:
+      - servarr
+
+    restart: "unless-stopped"
+  
+  certbot:
+    build:
+      context: ./certbot
+      dockerfile: Dockerfile
+
+    image: media-server-certbot
+    container_name: certbot
+
+    env_file: .env
+
+    volumes:
+      - ${CERT_FOLDER}:/etc/letsencrypt
+
+    networks:
+      - servarr
+
+    restart: "unless-stopped"
+
+networks:
+  servarr:
+    external: true

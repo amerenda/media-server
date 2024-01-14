@@ -1,0 +1,11 @@
+[Unit]
+Description=Runs the media-server stack
+
+[Service]
+WorkingDirectory=/home/alex/projects/media-server
+ExecStart=/usr/bin/docker-compose --env-file .env up --build -d
+Restart=always
+
+[Install]
+WantedBy=default.target
+
