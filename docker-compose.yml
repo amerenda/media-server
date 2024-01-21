@@ -2,45 +2,15 @@ version: "3.9"
 name: media-stack
 services:
 
-  vpn:
-    profiles: ["vpn"]
-    container_name: vpn
-    image: qmcgaw/gluetun:v3.36.0
-
-    cap_add:
-      - NET_ADMIN
-
-    environment:
-      - VPN_SERVICE_PROVIDER=nordvpn
-      - OPENVPN_USER=${VPN_USER}
-      - OPENVPN_PASSWORD=${VPN_PASSWORD}
-      - SERVER_COUNTRIES="United States"
-
-    networks:
-      - servarr
-
-    ports:
-       # sabnzbd
-       - 8080:8080
-       # prowlarr ports
-       - 9696:9696
-    restart: "unless-stopped"
-
-
   prowlarr:
     container_name: prowlarr
     image: linuxserver/prowlarr:latest
 
-    depends_on:
-      - vpn
+    networks:
+      servarr:
 
-    network_mode: service:vpn
-
-    #networks:
-    #  servarr:
-
-    #ports:
-    #  - 9696:9696
+    ports:
+      - 9696:9696
 
     environment:
       - PUID=1000
@@ -55,23 +25,22 @@ services:
     image: lscr.io/linuxserver/sabnzbd:latest
     container_name: sabnzbd
 
+    networks:
+      servarr:
+
     environment:
       - PUID=1000
       - PGID=1000
       - TZ=EST
 
-    #ports:
-    #  - 8080:8080
+    ports:
+      - 8080:8080
 
     volumes:
       - ${SABNZBD_CONFIG}:/config
       - ${USENET_DOWNLOADS}:/downloads
       - ${USENET_DOWNLOADS_INCOMPLETE}:/incomplete-downloads
 
-    depends_on:
-      - vpn
-
-    network_mode: service:vpn
 
     restart: unless-stopped
 
@@ -119,9 +88,28 @@ services:
 
     restart: unless-stopped
 
+  readarr:
+    image: lscr.io/linuxserver/readarr:nightly
+    container_name: readarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=EST
+    volumes:
+      - ${READARR_CONFIG}:/config
+      - ${BOOKS_FOLDER}:/books
+      - ${USENET_DOWNLOADS}:/downloads
+    ports:
+      - 8787:8787
+    restart: unless-stopped
+    networks:
+      servarr:
+
+
   jellyfin:
     image: linuxserver/jellyfin:latest
     container_name: jellyfin
+    runtime: nvidia
 
     networks:
       - servarr
@@ -131,6 +119,7 @@ services:
       - PGID=1000
       - TZ=EST
       - JELLYFIN_PublishedServerUrl=$JELLYFIN_URL
+      - NVIDIA_VISIBLE_DEVICES=all
 
     volumes:
       - ${JELLYFIN_CONFIG}:/config

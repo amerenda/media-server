@@ -1,5 +1,9 @@
 [Unit]
 Description=Runs the media-server stack
+Wants=sys-subsystem-net-devices-%i.device
+After=sys-subsystem-net-devices-%i.device
+After=docker.service
+PartOf=docker.service
 
 [Service]
 WorkingDirectory=/home/alex/projects/media-server
