@@ -1,14 +1,13 @@
 [Unit]
-Description=Runs the media-server stack
-Wants=sys-subsystem-net-devices-%i.device
-After=sys-subsystem-net-devices-%i.device
-After=docker.service
-PartOf=docker.service
+Description=Start or restart media-server using Docker Compose
+Wants=media-server.target
+After=media-server.target
 
 [Service]
+Type=oneshot
+ExecStart=/usr/bin/docker-compose --env-file /home/alex/projects/media-server/.env up --build -d
+User=%i
 WorkingDirectory=/home/alex/projects/media-server
-ExecStart=/usr/bin/docker-compose --env-file .env up --build -d
-Restart=always
 
 [Install]
 WantedBy=default.target
