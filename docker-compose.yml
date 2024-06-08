@@ -109,7 +109,7 @@ services:
   jellyfin:
     image: linuxserver/jellyfin:latest
     container_name: jellyfin
-    runtime: nvidia
+      #runtime: nvidia
 
     networks:
       - servarr
@@ -125,6 +125,7 @@ services:
       - ${JELLYFIN_CONFIG}:/config
       - ${MOVIES_FOLDER}:/movies
       - ${TV_FOLDER}:/tv
+      - ${TRANSCODE_FOLDER}:/transcode
 
     ports:
       - 8096:8096
@@ -151,7 +152,6 @@ services:
       - ${NGINX_FOLDER}:/etc/nginx/conf.d/
 
     ports:
-      - 80:80
       - 443:443
 
     networks:
@@ -169,13 +169,16 @@ services:
 
     env_file: .env
 
+    ports:
+      - 80:80
+
     volumes:
       - ${CERT_FOLDER}:/etc/letsencrypt
 
     networks:
       - servarr
 
-    restart: "unless-stopped"
+    restart: "no"
 
 networks:
   servarr:
