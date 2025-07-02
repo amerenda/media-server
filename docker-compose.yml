@@ -1,4 +1,3 @@
-version: "3.9"
 name: media-stack
 services:
 
@@ -88,28 +87,32 @@ services:
 
     restart: unless-stopped
 
-  readarr:
-    image: lscr.io/linuxserver/readarr:nightly
-    container_name: readarr
+  bazarr:
+    container_name: bazarr 
+    image: linuxserver/bazarr:latest
+
+    networks:
+      servarr:
+
+    ports:
+      - 6767:6767
+
     environment:
       - PUID=1000
       - PGID=1000
       - TZ=EST
     volumes:
-      - ${READARR_CONFIG}:/config
-      - ${BOOKS_FOLDER}:/books
-      - ${USENET_DOWNLOADS}:/downloads
-    ports:
-      - 8787:8787
+      - ${BAZARR_CONFIG}:/config
+      - ${TV_FOLDER}:/tv
+      - ${MOVIES_FOLDER}:/movies
+
     restart: unless-stopped
-    networks:
-      servarr:
 
 
   jellyfin:
-    image: linuxserver/jellyfin:latest
+    image: linuxserver/jellyfin:10.10.6
     container_name: jellyfin
-      #runtime: nvidia
+    runtime: nvidia
 
     networks:
       - servarr
@@ -138,8 +141,10 @@ services:
     build:
       context: ./dns/
       dockerfile: Dockerfile
-    image: media-server-dns
+        #  image: media-server-dns
     container_name: dns
+    networks:
+      - servarr
 
   nginx:
     build:
@@ -164,7 +169,7 @@ services:
       context: ./certbot
       dockerfile: Dockerfile
 
-    image: media-server-certbot
+        #  image: media-server-certbot
     container_name: certbot
 
     env_file: .env
