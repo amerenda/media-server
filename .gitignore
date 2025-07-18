@@ -1,3 +1,4 @@
 vpn-password.txt
 vpn-user.txt
 .env
+.venv

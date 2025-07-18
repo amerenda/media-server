@@ -128,7 +128,7 @@ services:
     restart: unless-stopped
 
   bazarr:
-    container_name: bazarr 
+    container_name: bazarr
     image: linuxserver/bazarr:latest
 
     networks:
@@ -181,8 +181,8 @@ services:
     build:
       context: ./dns/
       dockerfile: Dockerfile
-        #  image: media-server-dns
     container_name: dns
+    env_file: .env
     networks:
       - servarr
 
@@ -203,7 +203,7 @@ services:
       - servarr
 
     restart: "unless-stopped"
-  
+
   certbot:
     build:
       context: ./certbot

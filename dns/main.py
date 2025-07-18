@@ -1,9 +1,11 @@
 import requests
 import json
+import os
 
 # DigitalOcean API Token
-api_token = 'dop_v1_78f63d6c24574f55936ab0bcfeb3cd9f1815ba191bfa06faeb60ca15dac69a22'
+api_token = os.getenv('DO_API_TOKEN')
 
+print(api_token)
 # Domain and subdomain details
 domain_name = 'amer.dev'
 subdomain_name = 'media'
@@ -40,5 +42,5 @@ if record_id and record['data'] != current_ip:
     else:
         print(f'Failed to update DNS record: {update_response.text}')
 else:
-    print('DNS record is up to date or does not exist.')
+    print('DNS record is up to date.')
 
