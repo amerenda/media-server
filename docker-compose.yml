@@ -1,6 +1,44 @@
-version: "3.9"
 name: media-stack
 services:
+  whisparr:
+    container_name: whisparr
+
+    image: ghcr.io/thespad/whisparr:latest
+
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=EST
+
+    volumes:
+      - ${WHISPARR_CONFIG}:/config
+      - ${USENET_DOWNLOADS}:/downloads
+
+    ports:
+      - 6969:6969
+
+    networks:
+      servarr:
+
+    restart: unless-stopped
+
+  profilarr:
+    container_name: profilarr
+    image: santiagosayshey/profilarr:latest
+
+    ports:
+      - 6868:6868
+
+    volumes:
+      - ${PROFILARR_CONFIG}:/config
+
+    environment:
+      - TZ=EST
+
+    networks:
+      servarr:
+
+    restart: unless-stopped
 
   prowlarr:
     container_name: prowlarr
@@ -82,34 +120,39 @@ services:
       - ${SONARR_CONFIG}:/config
       - ${TV_FOLDER}:/tv
       - ${USENET_DOWNLOADS}:/downloads
+      - ${SONARR_SCRIPTS}:/scripts
 
     ports:
       - 8989:8989
 
     restart: unless-stopped
 
-  readarr:
-    image: lscr.io/linuxserver/readarr:nightly
-    container_name: readarr
+  bazarr:
+    container_name: bazarr
+    image: linuxserver/bazarr:latest
+
+    networks:
+      servarr:
+
+    ports:
+      - 6767:6767
+
     environment:
       - PUID=1000
       - PGID=1000
       - TZ=EST
     volumes:
-      - ${READARR_CONFIG}:/config
-      - ${BOOKS_FOLDER}:/books
-      - ${USENET_DOWNLOADS}:/downloads
-    ports:
-      - 8787:8787
+      - ${BAZARR_CONFIG}:/config
+      - ${TV_FOLDER}:/tv
+      - ${MOVIES_FOLDER}:/movies
+
     restart: unless-stopped
-    networks:
-      servarr:
 
 
   jellyfin:
-    image: linuxserver/jellyfin:latest
+    image: linuxserver/jellyfin:10.10.6
     container_name: jellyfin
-      #runtime: nvidia
+    runtime: nvidia
 
     networks:
       - servarr
@@ -138,8 +181,10 @@ services:
     build:
       context: ./dns/
       dockerfile: Dockerfile
-    image: media-server-dns
     container_name: dns
+    env_file: .env
+    networks:
+      - servarr
 
   nginx:
     build:
@@ -158,13 +203,13 @@ services:
       - servarr
 
     restart: "unless-stopped"
-  
+
   certbot:
     build:
       context: ./certbot
       dockerfile: Dockerfile
 
-    image: media-server-certbot
+        #  image: media-server-certbot
     container_name: certbot
 
     env_file: .env

@@ -20,3 +20,5 @@ My media server docker config
 1. Edit the .env file and replace with your configuration options
 2. Run `docker-compose --profile=vpn --env-file .env up --build -d`
 
+###
+* sudo pacman -S mkvtoolnix-cli
