@@ -3,7 +3,7 @@ services:
   whisparr:
     container_name: whisparr
 
-    image: ghcr.io/thespad/whisparr:latest
+    image: ghcr.io/hotio/whisparr:v3
 
     environment:
       - PUID=1000
@@ -12,6 +12,7 @@ services:
 
     volumes:
       - ${WHISPARR_CONFIG}:/config
+      - ${WHISPARR_FOLDER}:/porn
       - ${USENET_DOWNLOADS}:/downloads
 
     ports:
@@ -155,7 +156,7 @@ services:
     runtime: nvidia
 
     networks:
-      - servarr
+      servarr:
 
     environment:
       - PUID=1000
@@ -169,6 +170,7 @@ services:
       - ${MOVIES_FOLDER}:/movies
       - ${TV_FOLDER}:/tv
       - ${TRANSCODE_FOLDER}:/transcode
+      - ${WHISPARR_FOLDER}:/porn
 
     ports:
       - 8096:8096
@@ -184,7 +186,7 @@ services:
     container_name: dns
     env_file: .env
     networks:
-      - servarr
+      servarr:
 
   nginx:
     build:
@@ -200,7 +202,7 @@ services:
       - 443:443
 
     networks:
-      - servarr
+      servarr:
 
     restart: "unless-stopped"
 
@@ -221,7 +223,7 @@ services:
       - ${CERT_FOLDER}:/etc/letsencrypt
 
     networks:
-      - servarr
+      servarr:
 
     restart: "no"
 
